@@ -12,7 +12,7 @@ from time import time
 from struct import pack, unpack
 from collections import namedtuple
 
-import simplejson as json
+import json
 from pbkdf2 import PBKDF2
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
@@ -28,7 +28,7 @@ from .utils import (
 class EncryptedPickle(object):
     '''EncryptedPickle class'''
 
-    DEFAULT_MAGIC = 'EP'
+    DEFAULT_MAGIC = b'EP'
 
     VERSIONS = {
         1: {
@@ -249,7 +249,7 @@ class EncryptedPickle(object):
         if 'flags' in options:
             flags = options['flags']
             del(options['flags'])
-            for key, value in flags.iteritems():
+            for key, value in flags.items():
                 if not isinstance(value, bool):
                     raise TypeError('Invalid flag type for: %s' % key)
         else:
@@ -258,7 +258,7 @@ class EncryptedPickle(object):
         if 'info' in options:
             del(options['info'])
 
-        for key, value in options.iteritems():
+        for key, value in options.items():
             if not isinstance(value, int):
                 raise TypeError('Invalid option type for: %s' % key)
             if value < 0 or value > 255:
@@ -575,7 +575,7 @@ class EncryptedPickle(object):
         flags = options['flags']
 
         header_flags = dict(
-            (i, str(int(j))) for i, j in options['flags'].iteritems())
+            (i, str(int(j))) for i, j in options['flags'].items())
         header_flags = ''.join(version_info['flags'](**header_flags))
         header_flags = int(header_flags, 2)
         options['flags'] = header_flags
@@ -606,7 +606,7 @@ class EncryptedPickle(object):
 
         flags = list("{0:0>8b}".format(header['flags']))
         flags = dict(version_info['flags']._make(flags)._asdict())
-        flags = dict((i, bool(int(j))) for i, j in flags.iteritems())
+        flags = dict((i, bool(int(j))) for i, j in flags.items())
         header['flags'] = flags
 
         timestamp = None
@@ -636,7 +636,7 @@ class EncryptedPickle(object):
     def _read_version(self, data):
         '''Read header version from data'''
 
-        version = ord(data[0])
+        version = data[0]
         if version not in self.VERSIONS:
             raise Exception('Version not defined: %d' % version)
         return version
@@ -779,7 +779,7 @@ class EncryptedPickle(object):
 
         dec = AES.new(key, mode, iv_value).decrypt(enc)
 
-        numpad = ord(dec[-1])
+        numpad = dec[-1]
         dec = dec[0:-numpad]
 
         return dec
