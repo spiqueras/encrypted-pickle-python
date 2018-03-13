@@ -7,12 +7,13 @@ compression, and passphrase generations (rotation)
 
 from __future__ import absolute_import
 
+import json
 import zlib
+import pickle
 from time import time
 from struct import pack, unpack
 from collections import namedtuple
 
-import json
 from pbkdf2 import PBKDF2
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
@@ -112,7 +113,7 @@ class EncryptedPickle(object):
             'algorithm': 'no-serialization',
         },
         1: {
-            'algorithm': 'json',
+            'algorithm': 'pickle',
         },
     }
 
@@ -158,6 +159,9 @@ class EncryptedPickle(object):
         },
         'json': {
             'type': 'json',
+        },
+        'pickle': {
+            'type': 'pickle',
         },
 
         'no-compression': {
@@ -351,7 +355,9 @@ class EncryptedPickle(object):
         elif algorithm['type'] == 'no-serialization':
             return data
         elif algorithm['type'] == 'json':
-            return json.dumps(data)
+            return json.dumps(data).encode('utf8')
+        elif algorithm['type'] == 'pickle':
+            return pickle.dumps(data)
         elif algorithm['type'] == 'no-compression':
             return data
         elif algorithm['type'] == 'gzip':
@@ -375,6 +381,8 @@ class EncryptedPickle(object):
             return data
         elif algorithm['type'] == 'json':
             return json.loads(data)
+        elif algorithm['type'] == 'pickle':
+            return pickle.loads(data)
         elif algorithm['type'] == 'no-compression':
             return data
         elif algorithm['type'] == 'gzip':
@@ -747,7 +755,7 @@ class EncryptedPickle(object):
             iv_value = get_random_bytes(iv_size)
 
         numpad = block_size - (len(data) % block_size)
-        data = data + numpad * chr(numpad)
+        data = data + numpad * chr(numpad).encode()
 
         enc = AES.new(key, mode, iv_value).encrypt(data)
 
