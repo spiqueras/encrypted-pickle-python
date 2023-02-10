@@ -113,6 +113,9 @@ class EncryptedPickle(object):
             'algorithm': 'no-serialization',
         },
         1: {
+            'algorithm': 'json',
+        },
+        2: {
             'algorithm': 'pickle',
         },
     }
